@@ -14,10 +14,16 @@ A full-featured Checkers game built with Pygame, supporting multiple game modes 
   - Adjustable difficulty (search depth)
   - Evaluates board positions strategically
 
+- **Unique Ludo-Style Stacking System:**
+  - Create pairs and triples by stacking your own pieces (max 3)
+  - Stack strength matters: Pairs can only be captured by pairs or triples
+  - Triples can only be captured by other triples
+  - Strategic depth: Build defenses or break stacks for mobility
+
 - **Complete Checkers Rules:**
   - Standard 8x8 board with 12 pieces per side
   - Piece promotion to kings when reaching opposite end
-  - Mandatory captures
+  - Stack-based captures (strength matters!)
   - Kings can move in all directions
   - Multiple jumps in single turn
 
@@ -55,29 +61,48 @@ A full-featured Checkers game built with Pygame, supporting multiple game modes 
 
 3. Game Controls:
    - **Click** on a piece to select it
-   - **Click** on a highlighted square to move
+   - **Click** on a highlighted square to move (or stack on friendly piece)
    - **R** - Restart the current game
    - **M** - Return to main menu
+   
+4. See `STACKING_RULES.md` for detailed stacking strategy and rules
 
 ## Game Rules
 
+### Basic Movement
 - **Red pieces** start at the bottom and move upward
 - **White pieces** start at the top and move downward
 - Regular pieces can only move diagonally forward
 - **Kings** (crowned pieces) can move diagonally in all directions
-- You must capture opponent pieces when possible
-- Capture by jumping over opponent's piece
+
+### Stacking System (NEW!)
+- **Create stacks** by moving your pieces onto friendly pieces
+- **Maximum stack size:** 3 pieces per square
+- **Visual indicator:** Stack size shown as number on piece (2 or 3)
+- **Breaking stacks:** Move a piece from any stack to separate it
+
+### Capture Rules (Stack Strength)
+- **Single pieces** can only capture other single pieces
+- **Pairs (2 pieces)** can capture singles or pairs
+- **Triples (3 pieces)** can capture any stack
+- **Entire stacks** are captured and removed together
 - Multiple captures can be made in one turn
+
+### Victory Conditions
 - Game ends when one player has no pieces left
+- Stalemate: Player with no valid moves loses
+- Draw: 40 moves without capture or position repeats 3 times
 
 ## Files Structure
 
 - `main.py` - Main game loop and menu system
 - `game.py` - Game logic and state management
-- `board.py` - Board representation and move validation
-- `piece.py` - Piece class with rendering
+- `board.py` - Board representation and move validation (with stacking)
+- `piece.py` - Piece class with rendering (stack visualization)
 - `ai_player.py` - AI implementation with minimax algorithm
 - `constants.py` - Game constants and configurations
+- `STACKING_RULES.md` - Detailed stacking rules documentation
+- `STACKING_IMPLEMENTATION.md` - Technical implementation details
 
 ## AI Difficulty
 
@@ -92,9 +117,10 @@ The AI uses a minimax algorithm with alpha-beta pruning. You can adjust the AI d
 
 - **Language:** Python 3.11
 - **Framework:** Pygame 2.6.1
-- **Resolution:** 800x900 pixels
+- **Resolution:** Adjustable (500-800 pixels)
 - **AI Algorithm:** Minimax with Alpha-Beta Pruning
-- **Board Evaluation:** Piece count + King bonus
+- **Board Evaluation:** Piece count + King bonus + Stack formation bonus
+- **Data Structure:** List-based stacking system (max 3 pieces per cell)
 
 ## Credits
 

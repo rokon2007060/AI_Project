@@ -55,7 +55,13 @@ def minimax_alpha_beta(position, depth, alpha, beta, max_player, game):
         best_move = None
         best_move_info = None
         best_capture = False
-        for move, move_info, was_capture in get_all_moves(position, PLAYER1_COLOR, game):
+        moves = get_all_moves(position, PLAYER1_COLOR, game)
+        
+        # If no moves available, return current position
+        if not moves:
+            return position.evaluate(), position, None, False
+        
+        for move, move_info, was_capture in moves:
             evaluation = minimax_alpha_beta(move, depth - 1, alpha, beta, False, game)[0]
             if evaluation > max_eval:
                 max_eval = evaluation
@@ -72,7 +78,13 @@ def minimax_alpha_beta(position, depth, alpha, beta, max_player, game):
         best_move = None
         best_move_info = None
         best_capture = False
-        for move, move_info, was_capture in get_all_moves(position, PLAYER2_COLOR, game):
+        moves = get_all_moves(position, PLAYER2_COLOR, game)
+        
+        # If no moves available, return current position
+        if not moves:
+            return position.evaluate(), position, None, False
+        
+        for move, move_info, was_capture in moves:
             evaluation = minimax_alpha_beta(move, depth - 1, alpha, beta, True, game)[0]
             if evaluation < min_eval:
                 min_eval = evaluation
@@ -109,8 +121,9 @@ def get_all_moves(board, color, game):
         for move, skip in valid_moves.items():
             temp_board = copy.deepcopy(board)
             temp_piece = temp_board.get_piece(piece.row, piece.col)
-            new_board, last_move, was_capture = simulate_move(temp_piece, move, temp_board, game, skip)
-            moves.append((new_board, last_move, was_capture))
+            if temp_piece is not None:
+                new_board, last_move, was_capture = simulate_move(temp_piece, move, temp_board, game, skip)
+                moves.append((new_board, last_move, was_capture))
     
     return moves
 

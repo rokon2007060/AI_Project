@@ -4,7 +4,7 @@ Game class that manages the checkers game logic
 import pygame
 from constants import (RED, WHITE, BLUE, SQUARE_SIZE, PLAYER1_COLOR, 
                        PLAYER2_COLOR, GREEN, BLACK, WIDTH, HEIGHT, YELLOW, ORANGE, 
-                       BOARD_HEIGHT, MAX_MOVES_WITHOUT_CAPTURE, MAX_POSITION_REPEATS)
+                       BOARD_HEIGHT, MAX_MOVES_WITHOUT_CAPTURE, MAX_POSITION_REPEATS, LIGHT_BLUE)
 from board import Board
 
 class Game:
@@ -45,7 +45,7 @@ class Game:
                 self.select(row, col)
         
         piece = self.board.get_piece(row, col)
-        if piece != 0 and piece.color == self.turn:
+        if piece is not None and piece.color == self.turn:
             self.selected = piece
             self.valid_moves = self.board.get_valid_moves(piece)
             return True
@@ -54,8 +54,11 @@ class Game:
     
     def _move(self, row, col):
         """Move selected piece to position"""
-        piece = self.board.get_piece(row, col)
-        if self.selected and piece == 0 and (row, col) in self.valid_moves:
+        # Check if destination is valid (can be empty or friendly stack)
+        dest_stack = self.board.get_stack(row, col)
+        is_valid_dest = (row, col) in self.valid_moves
+        
+        if self.selected and is_valid_dest:
             # Store last move for visual indicator
             self.last_move = ((self.selected.row, self.selected.col), (row, col))
             
@@ -114,13 +117,14 @@ class Game:
                               row * SQUARE_SIZE + SQUARE_SIZE // 2), 15)
     
     def draw_info(self):
-        """Draw game information (turn, scores)"""
+        """Draw game information (turn, scores, stacking rules)"""
         info_y = BOARD_HEIGHT
         info_height = HEIGHT - BOARD_HEIGHT
         pygame.draw.rect(self.win, BLACK, (0, BOARD_HEIGHT, WIDTH, info_height))
         
         font = pygame.font.SysFont('arial', 28, bold=True)
-        font_small = pygame.font.SysFont('arial', 18)
+        font_small = pygame.font.SysFont('arial', 16)
+        font_tiny = pygame.font.SysFont('arial', 14)
         
         # Turn indicator
         turn_text = "Red's Turn" if self.turn == PLAYER1_COLOR else "White's Turn"
@@ -133,13 +137,18 @@ class Game:
         text = font.render(score_text, True, WHITE)
         self.win.blit(text, (20, info_y + 50))
         
+        # Stacking rules hint
+        stack_hint = "Stack pieces (max 3) • Pair beats pair • Triple beats all"
+        text = font_tiny.render(stack_hint, True, LIGHT_BLUE)
+        self.win.blit(text, (20, info_y + 85))
+        
         # Moves without capture counter (warning if getting close to draw)
         moves_left = MAX_MOVES_WITHOUT_CAPTURE - self.moves_without_capture
         if moves_left <= 10 and moves_left > 0:
             warning_text = f"⚠ Draw in {moves_left} moves!"
             warning_color = YELLOW if moves_left > 5 else ORANGE
             text = font_small.render(warning_text, True, warning_color)
-            self.win.blit(text, (20, info_y + 85))
+            self.win.blit(text, (20, info_y + 100))
         
         # Legend for move indicators
         legend_x = 450
@@ -170,6 +179,10 @@ class Game:
     
     def ai_move(self, board, last_move=None, was_capture=False):
         """Apply AI's move to the game"""
+        # Check if AI has a valid move
+        if board is None:
+            return
+        
         old_board = self.board
         self.board = board
         
@@ -197,13 +210,15 @@ class Game:
         """Get a hashable representation of current board state"""
         position = []
         for row in self.board.board:
-            for piece in row:
-                if piece == 0:
-                    position.append('_')
+            for stack in row:
+                if isinstance(stack, list) and len(stack) > 0:
+                    # Include stack size and color
+                    color = 'R' if stack[0].color == PLAYER1_COLOR else 'W'
+                    stack_size = len(stack)
+                    king = 'K' if stack[0].king else ''
+                    position.append(f"{color}{stack_size}{king}")
                 else:
-                    color = 'R' if piece.color == PLAYER1_COLOR else 'W'
-                    king = 'K' if piece.king else ''
-                    position.append(f"{color}{king}")
+                    position.append('_')
         return tuple(position)
     
     def _check_position_repeat(self):

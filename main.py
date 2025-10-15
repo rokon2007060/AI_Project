@@ -244,7 +244,10 @@ def game_loop(mode):
             
             # Get AI move
             new_board, move_info, was_capture = get_best_move(game.get_board(), game.turn, ai_depth)
-            game.ai_move(new_board, move_info, was_capture)
+            
+            # Check if AI has a valid move
+            if new_board is not None:
+                game.ai_move(new_board, move_info, was_capture)
             
             last_ai_move_time = time.time()
             ai_thinking = False
