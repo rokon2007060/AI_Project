@@ -1,0 +1,180 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║           BOARD GOING OUTSIDE SCREEN - FIXED! ✅                         ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+PROBLEM: Board was 800x920 pixels - Too big for your screen!
+
+SOLUTION: You now have FULL CONTROL over window size!
+
+═══════════════════════════════════════════════════════════════════════════
+                    🎯 HOW TO FIT YOUR SCREEN
+═══════════════════════════════════════════════════════════════════════════
+
+METHOD 1: USE SIZE SELECTION MENU (EASIEST!)
+────────────────────────────────────────────
+When you run the game:
+  1. First screen shows "SELECT WINDOW SIZE"
+  2. Press 1, 2, 3, or 4 to choose size
+  3. Press ENTER to continue
+
+  OPTIONS:
+    1 = Small (500x620)    ← For laptops
+    2 = Medium (600x720)   ← RECOMMENDED ✅
+    3 = Large (700x820)    ← For big monitors
+    4 = Extra Large (800x920) ← For huge screens
+
+
+METHOD 2: CHANGE FROM MENU ANYTIME
+───────────────────────────────────
+  1. Press M to return to menu
+  2. Select "4. Change Window Size"
+  3. Choose your size (1-4)
+  4. Press ENTER
+
+
+METHOD 3: EDIT constants.py (MANUAL)
+─────────────────────────────────────
+  1. Open constants.py in editor
+  2. Find line: BOARD_HEIGHT = 600
+  3. Change to: BOARD_HEIGHT = 500 (or any size)
+  4. Save and restart game
+
+
+═══════════════════════════════════════════════════════════════════════════
+                    📏 RECOMMENDED SIZES
+═══════════════════════════════════════════════════════════════════════════
+
+┌───────────────┬──────────────┬─────────────────────────────┐
+│     SIZE      │  DIMENSIONS  │         BEST FOR            │
+├───────────────┼──────────────┼─────────────────────────────┤
+│ 1. Small      │  500 x 620   │ Laptops, 1366x768 screens  │
+│ 2. Medium ✅  │  600 x 720   │ Most screens (RECOMMENDED) │
+│ 3. Large      │  700 x 820   │ Desktop monitors           │
+│ 4. Extra Lg   │  800 x 920   │ Full HD, large displays    │
+└───────────────┴──────────────┴─────────────────────────────┘
+
+TIP: If you're not sure, start with option 2 (Medium)!
+
+
+═══════════════════════════════════════════════════════════════════════════
+                    🚀 QUICK START
+═══════════════════════════════════════════════════════════════════════════
+
+STEP 1: Run the game
+        python main.py
+
+STEP 2: You'll see "SELECT WINDOW SIZE" screen
+
+STEP 3: Press 2 (for Medium 600x720)
+
+STEP 4: Press ENTER
+
+STEP 5: Play! The board will fit perfectly!
+
+
+═══════════════════════════════════════════════════════════════════════════
+                    ⚡ IF STILL TOO BIG
+═══════════════════════════════════════════════════════════════════════════
+
+If even option 1 (Small) is too big:
+
+SOLUTION A: Edit constants.py manually
+  - Change: BOARD_HEIGHT = 400 (or even 350)
+  - This will make window 400x520 or 350x470
+
+SOLUTION B: Use smaller board
+  - In constants.py, change: ROWS, COLS = 6, 6
+  - Makes game 6x6 instead of 8x8
+  - Much smaller window!
+
+
+═══════════════════════════════════════════════════════════════════════════
+                    💡 WHAT'S NEW
+═══════════════════════════════════════════════════════════════════════════
+
+✅ Window size selection on startup
+✅ Menu option to change size anytime
+✅ 4 preset sizes to choose from
+✅ Manual control in constants.py
+✅ Default changed to 600px (was 800px)
+✅ Everything scales automatically
+✅ Game state preserved when resizing
+
+
+═══════════════════════════════════════════════════════════════════════════
+                    🎮 CONTROLS SUMMARY
+═══════════════════════════════════════════════════════════════════════════
+
+IN SIZE SELECTION SCREEN:
+  1, 2, 3, 4 → Select window size
+  ENTER      → Confirm and continue
+
+IN MAIN MENU:
+  4          → Change window size
+  M          → Return to menu (from game)
+
+IN GAME:
+  R          → Restart
+  M          → Main menu
+
+
+═══════════════════════════════════════════════════════════════════════════
+                    📝 EXAMPLE WALKTHROUGH
+═══════════════════════════════════════════════════════════════════════════
+
+USER: "The board is too big for my laptop!"
+
+SOLUTION:
+  1. Run: python main.py
+  2. See size selection screen
+  3. Press 1 (Small - 500x620)
+  4. Press ENTER
+  5. Game fits laptop perfectly! ✅
+
+─────────────────────────────────────────────────────────────────────────
+
+USER: "I want a bigger window now!"
+
+SOLUTION:
+  1. Press M (back to menu)
+  2. Select "4. Change Window Size"
+  3. Press 3 (Large - 700x820)
+  4. Press ENTER
+  5. Bigger window! ✅
+
+
+═══════════════════════════════════════════════════════════════════════════
+                    ✅ FINAL RESULT
+═══════════════════════════════════════════════════════════════════════════
+
+BEFORE:
+  ❌ Board was 800x920 (too big)
+  ❌ No way to resize easily
+  ❌ Board went outside screen
+  ❌ Had to edit code manually
+
+AFTER:
+  ✅ Choose from 4 sizes
+  ✅ Default is 600x720 (fits most screens)
+  ✅ Change size anytime from menu
+  ✅ Manual control still available
+  ✅ Everything scales perfectly
+  ✅ No more cutting off!
+
+
+═══════════════════════════════════════════════════════════════════════════
+                    🎉 YOU'RE ALL SET!
+═══════════════════════════════════════════════════════════════════════════
+
+The game will now:
+  • Show size selection on first run
+  • Default to 600x720 (fits most screens)
+  • Let you change size anytime
+  • Never go outside your screen!
+
+Run the game and enjoy! 🎮
+
+═══════════════════════════════════════════════════════════════════════════
+For more details, see: WINDOW_RESIZE_GUIDE.md
+═══════════════════════════════════════════════════════════════════════════
+

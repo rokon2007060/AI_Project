@@ -1,0 +1,228 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║              CHECKERS - BOARD SIZE & DRAW RULES QUICK GUIDE              ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════
+                    🎯 CRITICAL FIXES APPLIED
+═══════════════════════════════════════════════════════════════════════════
+
+✅ INFINITE LOOP FIXED!
+   - Game now detects draws (40 moves without capture)
+   - Position repetition detected (3-fold repetition)
+   - No more endless king back-and-forth!
+
+✅ BOARD SIZE CONTROL!
+   - Easy to change in constants.py
+   - Fully configurable (6x6 to 20x20)
+   - Everything adjusts automatically
+
+
+═══════════════════════════════════════════════════════════════════════════
+            📏 HOW TO CHANGE BOARD SIZE (3 SIMPLE STEPS)
+═══════════════════════════════════════════════════════════════════════════
+
+STEP 1: Open constants.py
+
+STEP 2: Find this line:
+        ROWS, COLS = 8, 8
+
+STEP 3: Change the numbers:
+
+   ┌─────────────────────────────────────────┐
+   │ ROWS, COLS = 6, 6   ← Small (faster)   │
+   │ ROWS, COLS = 8, 8   ← Standard         │
+   │ ROWS, COLS = 10, 10 ← Large (complex)  │
+   └─────────────────────────────────────────┘
+
+THAT'S IT! Run the game and everything adjusts automatically!
+
+
+═══════════════════════════════════════════════════════════════════════════
+                        🎲 BOARD SIZE OPTIONS
+═══════════════════════════════════════════════════════════════════════════
+
+┌───────────┬───────────┬────────────┬──────────┬─────────────────┐
+│   SIZE    │  PIECES   │  DURATION  │ AI SPEED │    BEST FOR     │
+├───────────┼───────────┼────────────┼──────────┼─────────────────┤
+│   6x6     │ 9/side    │  5-10 min  │   Fast   │ Quick matches   │
+│   8x8     │ 12/side   │ 10-20 min  │  Medium  │ Standard play   │
+│  10x10    │ 20/side   │ 20-40 min  │   Slow   │ Strategic depth │
+│  12x12    │ 30/side   │   30+ min  │Very slow │ Advanced only   │
+└───────────┴───────────┴────────────┴──────────┴─────────────────┘
+
+RECOMMENDATION: Start with 8x8 (standard)
+
+
+═══════════════════════════════════════════════════════════════════════════
+                        🎮 DRAW RULES EXPLAINED
+═══════════════════════════════════════════════════════════════════════════
+
+RULE 1: 40-MOVE RULE
+  ┌────────────────────────────────────────────┐
+  │ If 40 moves pass WITHOUT any capture      │
+  │ → Game is a DRAW                           │
+  │                                            │
+  │ Counter RESETS when any piece captured    │
+  └────────────────────────────────────────────┘
+
+RULE 2: 3-FOLD REPETITION
+  ┌────────────────────────────────────────────┐
+  │ If the SAME POSITION appears 3 times       │
+  │ → Game is a DRAW                           │
+  │                                            │
+  │ Prevents infinite back-and-forth moves    │
+  └────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════
+                      ⚠️ DRAW WARNINGS IN GAME
+═══════════════════════════════════════════════════════════════════════════
+
+YOU'LL SEE WARNINGS ON SCREEN:
+
+  When 10 moves left:
+  ┌───────────────────────────────┐
+  │ ⚠ Draw in 10 moves!           │ ← Yellow warning
+  └───────────────────────────────┘
+
+  When 5 moves left:
+  ┌───────────────────────────────┐
+  │ ⚠ Draw in 3 moves!            │ ← Orange warning (urgent!)
+  └───────────────────────────────┘
+
+ACTION: Capture a piece to reset the counter!
+
+
+═══════════════════════════════════════════════════════════════════════════
+                       🎯 EXAMPLE CONFIGURATIONS
+═══════════════════════════════════════════════════════════════════════════
+
+QUICK GAME (10 minutes):
+  ─────────────────────────────────────
+  In constants.py:
+    ROWS, COLS = 6, 6
+    MAX_MOVES_WITHOUT_CAPTURE = 20
+
+
+STANDARD GAME (20 minutes):
+  ─────────────────────────────────────
+  In constants.py:
+    ROWS, COLS = 8, 8
+    MAX_MOVES_WITHOUT_CAPTURE = 40
+
+
+LONG GAME (40+ minutes):
+  ─────────────────────────────────────
+  In constants.py:
+    ROWS, COLS = 10, 10
+    MAX_MOVES_WITHOUT_CAPTURE = 60
+
+
+═══════════════════════════════════════════════════════════════════════════
+                    🔧 ADVANCED CONFIGURATION
+═══════════════════════════════════════════════════════════════════════════
+
+In constants.py, you can adjust:
+
+┌─────────────────────────────────────────────────────────────┐
+│ ROWS, COLS = 8, 8                  ← Board size            │
+│                                                             │
+│ MAX_MOVES_WITHOUT_CAPTURE = 40     ← Draw after N moves   │
+│                                                             │
+│ MAX_POSITION_REPEATS = 3           ← Draw after N repeats │
+└─────────────────────────────────────────────────────────────┘
+
+In main.py, you can adjust:
+
+┌─────────────────────────────────────────────────────────────┐
+│ AI_VS_AI_DELAY = 1.5               ← Seconds between moves │
+└─────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════
+                        ❓ COMMON QUESTIONS
+═══════════════════════════════════════════════════════════════════════════
+
+Q: Can I make a 5x5 board?
+A: Not recommended. Minimum 6x6 for proper gameplay.
+
+Q: What's the maximum board size?
+A: Technical limit is 20x20, but AI will be VERY slow.
+
+Q: Will my games crash with larger boards?
+A: No, but AI thinking time increases exponentially.
+
+Q: Can I disable draw detection?
+A: Yes, set MAX_MOVES_WITHOUT_CAPTURE = 9999 and MAX_POSITION_REPEATS = 999
+
+Q: Do draw rules work in all game modes?
+A: Yes! Human vs Human, Human vs AI, and AI vs AI.
+
+Q: What if I want faster draws?
+A: Reduce MAX_MOVES_WITHOUT_CAPTURE to 20 or 30.
+
+
+═══════════════════════════════════════════════════════════════════════════
+                        💡 PRO TIPS
+═══════════════════════════════════════════════════════════════════════════
+
+✓ Start with 8x8 standard board
+✓ Watch for draw warnings during play
+✓ Capture pieces to reset move counter
+✓ Try 6x6 for quick practice games
+✓ Use 10x10 for challenging strategic play
+✓ AI vs AI on large boards = great learning tool
+✓ Don't go above 12x12 unless you're patient!
+
+
+═══════════════════════════════════════════════════════════════════════════
+                      🚀 GETTING STARTED
+═══════════════════════════════════════════════════════════════════════════
+
+STEP 1: Choose your board size (edit constants.py)
+
+STEP 2: Run the game:
+        python main.py
+
+STEP 3: Select game mode:
+        1 = Human vs Human
+        2 = Human vs AI
+        3 = AI vs AI (watch for draw detection!)
+
+STEP 4: Play and watch for draw warnings!
+
+
+═══════════════════════════════════════════════════════════════════════════
+                     📊 WHAT'S DIFFERENT NOW?
+═══════════════════════════════════════════════════════════════════════════
+
+BEFORE:                          AFTER:
+─────────────────────────────────────────────────────────
+Kings repeat forever  ❌  →     Draw detection ✅
+Fixed board size      ❌  →     Easy to configure ✅
+No warnings           ❌  →     Visual warnings ✅
+Games never end       ❌  →     Proper endings ✅
+One size fits all     ❌  →     6x6 to 20x20 ✅
+
+
+═══════════════════════════════════════════════════════════════════════════
+                         🎉 ENJOY!
+═══════════════════════════════════════════════════════════════════════════
+
+All issues have been fixed!
+- No more infinite loops
+- Full board size control
+- Clear draw detection
+- Visual warnings
+
+Ready to play? Run: python main.py
+
+Have fun with your customizable checkers game! 🎮♟️
+
+
+═══════════════════════════════════════════════════════════════════════════
+Project: E:\AI_project
+Version: 1.2
+Date: October 12, 2025
+═══════════════════════════════════════════════════════════════════════════
+

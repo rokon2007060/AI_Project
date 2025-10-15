@@ -1,0 +1,63 @@
+╔════════════════════════════════════════════════════════════════╗
+║                    CHECKERS GAME - QUICK START                 ║
+╚════════════════════════════════════════════════════════════════╝
+
+HOW TO RUN:
+-----------
+1. Double-click "run_checkers.bat" 
+   OR
+2. Open terminal and type: python main.py
+
+GAME MODES:
+-----------
+Press 1 - Human vs Human (2 players on same computer)
+Press 2 - Human vs AI (Play against computer)
+Press 3 - AI vs AI (Watch 2 AIs play)
+Press 4 - Quit
+
+IN-GAME CONTROLS:
+-----------------
+MOUSE:
+  • Click piece to select
+  • Click green circle to move
+
+KEYBOARD:
+  • R = Restart game
+  • M = Back to menu
+
+RULES:
+------
+• Red moves first (bottom pieces)
+• Move diagonally forward
+• Jump to capture opponent pieces
+• Reach opposite end to become King (♔)
+• Kings can move backward too
+• Win by capturing all opponent pieces
+
+TIPS:
+-----
+✓ Green circles show valid moves
+✓ Protect your back row
+✓ Try to make Kings
+✓ AI takes 2-5 seconds to think
+✓ Multiple jumps allowed in one turn
+
+TROUBLESHOOTING:
+----------------
+Problem: Game won't start
+Solution: Make sure pygame is installed
+         Run: pip install pygame
+
+Problem: AI too slow
+Solution: Normal! AI is thinking (2-5 seconds)
+
+Problem: Can't click pieces
+Solution: Wait for your turn (check turn indicator)
+
+═══════════════════════════════════════════════════════════════════
+
+For detailed guide, see USAGE_GUIDE.md
+For technical info, see README.md
+
+Have fun! 🎮
+
