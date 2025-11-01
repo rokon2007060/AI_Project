@@ -2,9 +2,10 @@
 Game class that manages the checkers game logic
 """
 import pygame
+import constants
 from constants import (RED, WHITE, BLUE, SQUARE_SIZE, PLAYER1_COLOR, 
                        PLAYER2_COLOR, GREEN, BLACK, WIDTH, HEIGHT, YELLOW, ORANGE, 
-                       BOARD_HEIGHT, MAX_MOVES_WITHOUT_CAPTURE, MAX_POSITION_REPEATS, LIGHT_BLUE)
+                       BOARD_HEIGHT, MAX_MOVES_WITHOUT_CAPTURE, MAX_POSITION_REPEATS, LIGHT_BLUE, DRAW_RULES_ENABLED)
 from board import Board
 
 class Game:
@@ -16,6 +17,7 @@ class Game:
         """Update the display"""
         self.board.draw(self.win)
         self.draw_last_move()
+        self.draw_selected_piece_indicator()
         self.draw_valid_moves(self.valid_moves)
         self.draw_info()
         pygame.display.update()
@@ -23,13 +25,14 @@ class Game:
     def _init(self):
         """Initialize/reset the game"""
         self.selected = None
-        self.board = Board()
+        self.selected_stack_index = 0  # Track which piece in stack is selected
+        self.board = Board(constants.ROWS, constants.COLS)
         self.turn = PLAYER1_COLOR
         self.valid_moves = {}
-        self.last_move = None  # Track last move (from_pos, to_pos)
-        self.move_history = []  # Track all moves
-        self.position_history = []  # Track board positions
-        self.moves_without_capture = 0  # Count moves without capture
+        self.last_move = None
+        self.move_history = []
+        self.position_history = []
+        self.moves_without_capture = 0
         self.is_draw = False
     
     def reset(self):
@@ -37,25 +40,56 @@ class Game:
         self._init()
     
     def select(self, row, col):
-        """Select a piece or move to a position"""
+        """
+        Select a piece or move to a position
+        Clicking same square cycles through stack pieces
+        """
+        # Check if click is within board bounds
+        if row >= constants.ROWS or col >= constants.COLS:
+            self.selected = None
+            self.selected_stack_index = 0
+            self.valid_moves = {}
+            return False
+            
         if self.selected:
-            result = self._move(row, col)
-            if not result:
-                self.selected = None
-                self.select(row, col)
+            # Check if clicking on the same selected square (cycle through stack)
+            if self.selected.row == row and self.selected.col == col:
+                stack = self.board.get_stack(row, col)
+                friendly_pieces = [p for p in stack if p.color == self.turn]
+                
+                if len(friendly_pieces) > 1:
+                    # Cycle to next piece in stack
+                    self.selected_stack_index = (self.selected_stack_index + 1) % len(friendly_pieces)
+                    self.selected = friendly_pieces[self.selected_stack_index]
+                    self.valid_moves = self.board.get_valid_moves(self.selected)
+                    return True
+            else:
+                # Trying to move to a different square
+                result = self._move(row, col)
+                if not result:
+                    self.selected = None
+                    self.selected_stack_index = 0
+                    self.select(row, col)
+                else:
+                    self.selected_stack_index = 0
+                return result
         
-        piece = self.board.get_piece(row, col)
-        if piece is not None and piece.color == self.turn:
-            self.selected = piece
-            self.valid_moves = self.board.get_valid_moves(piece)
-            return True
+        # Select a piece at this position
+        stack = self.board.get_stack(row, col)
+        if stack:
+            friendly_pieces = [p for p in stack if p.color == self.turn]
+            if friendly_pieces:
+                # Start with top friendly piece
+                self.selected_stack_index = 0
+                self.selected = friendly_pieces[0]
+                self.valid_moves = self.board.get_valid_moves(self.selected)
+                return True
         
         return False
     
     def _move(self, row, col):
         """Move selected piece to position"""
-        # Check if destination is valid (can be empty or friendly stack)
-        dest_stack = self.board.get_stack(row, col)
+        # Check if destination is valid
         is_valid_dest = (row, col) in self.valid_moves
         
         if self.selected and is_valid_dest:
@@ -66,17 +100,19 @@ class Game:
             self.move_history.append(self.last_move)
             
             # Check if this move captured anything
-            skipped = self.valid_moves[(row, col)]
-            if skipped:
-                self.board.remove(skipped)
-                self.moves_without_capture = 0  # Reset counter on capture
+            captured_pieces = self.valid_moves[(row, col)]
+            if captured_pieces:
+                self.board.remove(captured_pieces)
+                self.moves_without_capture = 0
             else:
-                self.moves_without_capture += 1  # Increment if no capture
+                if constants.DRAW_RULES_ENABLED:
+                    self.moves_without_capture += 1
             
             self.board.move(self.selected, row, col)
             
             # Store board position for repeat detection
-            self._store_position()
+            if constants.DRAW_RULES_ENABLED:
+                self._store_position()
             
             self.change_turn()
         else:
@@ -108,6 +144,40 @@ class Game:
                         to_row * SQUARE_SIZE + SQUARE_SIZE // 2)
             pygame.draw.line(self.win, YELLOW, from_center, to_center, 3)
     
+    def draw_selected_piece_indicator(self):
+        """Draw indicator showing which piece in stack is selected"""
+        if self.selected:
+            row, col = self.selected.row, self.selected.col
+            stack = self.board.get_stack(row, col)
+            friendly_pieces = [p for p in stack if p.color == self.turn]
+            
+            # Draw blue highlight on selected square
+            pygame.draw.rect(self.win, BLUE,
+                           (col * SQUARE_SIZE, row * SQUARE_SIZE,
+                            SQUARE_SIZE, SQUARE_SIZE), 5)
+            
+            # If multiple pieces in stack, show which one is selected
+            if len(friendly_pieces) > 1:
+                # Show stack index indicator
+                font = pygame.font.SysFont('arial', 16, bold=True)
+                stack_info = f"{self.selected_stack_index + 1}/{len(friendly_pieces)}"
+                
+                # Show piece type
+                piece_type = "K" if self.selected.king else "N"
+                indicator_text = f"[{piece_type}]{stack_info}"
+                
+                text = font.render(indicator_text, True, LIGHT_BLUE)
+                text_bg = pygame.Surface((text.get_width() + 6, text.get_height() + 4))
+                text_bg.fill(BLACK)
+                text_bg.set_alpha(180)
+                
+                # Position indicator at top-right of square
+                text_x = col * SQUARE_SIZE + SQUARE_SIZE - text.get_width() - 8
+                text_y = row * SQUARE_SIZE + 2
+                
+                self.win.blit(text_bg, (text_x - 3, text_y - 2))
+                self.win.blit(text, (text_x, text_y))
+    
     def draw_valid_moves(self, moves):
         """Draw circles showing valid moves"""
         for move in moves:
@@ -138,36 +208,36 @@ class Game:
         self.win.blit(text, (20, info_y + 50))
         
         # Stacking rules hint
-        stack_hint = "Stack pieces (max 3) • Pair beats pair • Triple beats all"
+        if constants.STACKING_ENABLED:
+            stack_hint = "Stack pieces (max 3) • Pair beats pair • Triple beats all"
+        else:
+            stack_hint = "No stacking - standard checkers rules"
         text = font_tiny.render(stack_hint, True, LIGHT_BLUE)
         self.win.blit(text, (20, info_y + 85))
         
-        # Moves without capture counter (warning if getting close to draw)
-        moves_left = MAX_MOVES_WITHOUT_CAPTURE - self.moves_without_capture
-        if moves_left <= 10 and moves_left > 0:
-            warning_text = f"⚠ Draw in {moves_left} moves!"
-            warning_color = YELLOW if moves_left > 5 else ORANGE
-            text = font_small.render(warning_text, True, warning_color)
-            self.win.blit(text, (20, info_y + 100))
+        # Moves without capture counter
+        if constants.DRAW_RULES_ENABLED:
+            moves_left = MAX_MOVES_WITHOUT_CAPTURE - self.moves_without_capture
+            if moves_left <= 10 and moves_left > 0:
+                warning_text = f"⚠ Draw in {moves_left} moves!"
+                warning_color = YELLOW if moves_left > 5 else ORANGE
+                text = font_small.render(warning_text, True, warning_color)
+                self.win.blit(text, (20, info_y + 100))
         
-        # Legend for move indicators
-        legend_x = 450
-        if WIDTH >= 600:  # Only show legend if window is wide enough
-            legend_text = font_small.render("Last Move:", True, WHITE)
-            self.win.blit(legend_text, (legend_x, info_y + 15))
-            
-            # Draw small squares showing what colors mean
-            pygame.draw.rect(self.win, ORANGE, (legend_x, info_y + 40, 18, 18), 2)
-            from_text = font_small.render("From", True, ORANGE)
-            self.win.blit(from_text, (legend_x + 22, info_y + 40))
-            
-            pygame.draw.rect(self.win, YELLOW, (legend_x + 90, info_y + 40, 18, 18), 2)
-            to_text = font_small.render("To", True, YELLOW)
-            self.win.blit(to_text, (legend_x + 112, info_y + 40))
+        # Stack selection hint (only show if a stack with multiple pieces is selected)
+        if self.selected:
+            stack = self.board.get_stack(self.selected.row, self.selected.col)
+            friendly_pieces = [p for p in stack if p.color == self.turn]
+            if len(friendly_pieces) > 1:
+                hint_text = "Click again to cycle stack pieces"
+                text = font_tiny.render(hint_text, True, LIGHT_BLUE)
+                self.win.blit(text, (WIDTH - text.get_width() - 10, info_y + 100))
     
     def change_turn(self):
         """Change turn to other player"""
         self.valid_moves = {}
+        self.selected = None
+        self.selected_stack_index = 0  # Reset stack selection
         if self.turn == PLAYER1_COLOR:
             self.turn = PLAYER2_COLOR
         else:
@@ -179,7 +249,6 @@ class Game:
     
     def ai_move(self, board, last_move=None, was_capture=False):
         """Apply AI's move to the game"""
-        # Check if AI has a valid move
         if board is None:
             return
         
@@ -190,14 +259,14 @@ class Game:
             self.last_move = last_move
             self.move_history.append(last_move)
             
-            # Update capture counter
-            if was_capture:
-                self.moves_without_capture = 0
-            else:
-                self.moves_without_capture += 1
+            if constants.DRAW_RULES_ENABLED:
+                if was_capture:
+                    self.moves_without_capture = 0
+                else:
+                    self.moves_without_capture += 1
         
-        # Store position for repeat detection
-        self._store_position()
+        if constants.DRAW_RULES_ENABLED:
+            self._store_position()
         
         self.change_turn()
     
@@ -212,7 +281,6 @@ class Game:
         for row in self.board.board:
             for stack in row:
                 if isinstance(stack, list) and len(stack) > 0:
-                    # Include stack size and color
                     color = 'R' if stack[0].color == PLAYER1_COLOR else 'W'
                     stack_size = len(stack)
                     king = 'K' if stack[0].king else ''
@@ -232,6 +300,9 @@ class Game:
     
     def check_draw(self):
         """Check if game is a draw"""
+        if not constants.DRAW_RULES_ENABLED:
+            return False, None
+        
         # Draw if too many moves without capture
         if self.moves_without_capture >= MAX_MOVES_WITHOUT_CAPTURE:
             return True, "draw_no_capture"
@@ -249,17 +320,10 @@ class Game:
     def has_valid_moves(self, color):
         """Check if a player has any valid moves"""
         pieces = self.board.get_all_pieces(color)
-        total_moves = 0
         
         for piece in pieces:
             valid_moves = self.board.get_valid_moves(piece)
-            total_moves += len(valid_moves)
             if valid_moves:
                 return True
         
-        # Debug: Print when no moves found
-        color_name = "Red" if color == PLAYER1_COLOR else "White"
-        print(f"DEBUG: {color_name} has {len(pieces)} pieces but {total_moves} valid moves")
-        
         return False
-

@@ -3,26 +3,39 @@ Constants for the Checkers game
 """
 
 # ===== BOARD SIZE CONFIGURATION =====
-# Change ROWS and COLS to adjust board size
-# Standard checkers: 8x8
-# You can try: 6x6 (smaller, faster), 10x10 (larger, more complex)
-ROWS, COLS = 8, 8  # CHANGE THESE VALUES TO RESIZE BOARD
+ROWS, COLS = 8, 8  # Standard checkers board
 
 # ===== WINDOW SIZE CONFIGURATION =====
-# Change BOARD_HEIGHT to resize the window to fit your screen
-# Options: 500 (small), 600 (medium), 700 (large), 800 (extra large)
-# If game goes outside screen, REDUCE this number!
-BOARD_HEIGHT = 600  # CHANGE THIS TO FIT YOUR SCREEN! (try 500, 600, 700)
+BOARD_HEIGHT = 600  # Base board height
 
 # Window dimensions (automatically calculated)
-SQUARE_SIZE = BOARD_HEIGHT // COLS  # Each square size
-INFO_PANEL_HEIGHT = 120  # Height of info panel at bottom
-WIDTH = BOARD_HEIGHT  # Square window
-HEIGHT = BOARD_HEIGHT + INFO_PANEL_HEIGHT  # Total window height
+SQUARE_SIZE = BOARD_HEIGHT // COLS
+INFO_PANEL_HEIGHT = 120
+WIDTH = BOARD_HEIGHT
+HEIGHT = BOARD_HEIGHT + INFO_PANEL_HEIGHT
 
 # Game rules
-MAX_MOVES_WITHOUT_CAPTURE = 40  # Draw after N moves without capture
-MAX_POSITION_REPEATS = 3  # Draw if same position repeats N times
+MAX_MOVES_WITHOUT_CAPTURE = 50
+MAX_POSITION_REPEATS = 5
+STACKING_ENABLED = True
+DRAW_RULES_ENABLED = True
+
+# AI Configuration
+AI_TYPE_ORIGINAL = "original"
+AI_TYPE_FUZZY = "fuzzy" 
+AI_TYPE_HEURISTIC = "heuristic"
+AI_TYPE_MINIMAX_BACKTRACK = "minimax_backtrack"
+AI_TYPE_MINIMAX_FUZZY = "minimax_fuzzy"
+
+# Default AI types - Set to use the new agents by default
+AI_PLAYER1_TYPE = AI_TYPE_MINIMAX_BACKTRACK  # Use Minimax+Backtrack by default
+AI_PLAYER2_TYPE = AI_TYPE_MINIMAX_FUZZY      # Use Minimax+Fuzzy by default
+
+# AI Search Parameters
+AI_TIME_LIMIT = 5.0  # seconds per move
+AI_DEPTH_MINIMAX = 4
+AI_DEPTH_BACKTRACK = 3
+AI_DEPTH_FUZZY = 4
 
 # Colors
 RED = (255, 0, 0)
@@ -49,4 +62,3 @@ CROWN = "♔"
 HUMAN_VS_HUMAN = "human_vs_human"
 HUMAN_VS_AI = "human_vs_ai"
 AI_VS_AI = "ai_vs_ai"
-

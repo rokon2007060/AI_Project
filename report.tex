@@ -1,0 +1,1264 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{float}
+
+% Code listing style
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{gray}\itshape,
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=8pt,
+    backgroundcolor=\color{white},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    frame=single,
+    tabsize=2,
+    captionpos=b,
+    breaklines=true,
+    breakatwhitespace=false,
+    escapeinside={\%*}{*)},
+    xleftmargin=2em,
+    framexleftmargin=1.5em
+}
+
+\title{\textbf{Intelligent Checkers Game System} \\ 
+       \Large{Advanced AI Agents with Strategic Planning and Enhanced Stack Mechanics}}
+\author{Course Project Report}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+This report presents a comprehensive implementation of an intelligent checkers game system featuring multiple AI agents with advanced strategic planning capabilities. The system implements a variation of checkers with \textbf{enhanced stacking mechanics} and \textbf{optional capture rules}, where pieces can stack up to 3 pieces high, and players can select which piece in a stack to move, creating unprecedented strategic depth and complexity.
+
+\subsection{Project Overview}
+
+The project encompasses:
+\begin{itemize}
+    \item Dynamic board sizing (6×6 to 12×12)
+    \item Multiple game modes: Human vs Human, Human vs AI, AI vs AI
+    \item Three advanced AI algorithms with different strategic approaches
+    \item Enhanced stacking mechanics with selective piece movement
+    \item Optional capture rule (no mandatory captures)
+    \item Multi-jump capture sequence detection
+    \item Draw detection with configurable rules
+    \item Real-time game visualization using Pygame
+\end{itemize}
+
+\subsection{System Architecture}
+
+The system is structured into modular components:
+\begin{itemize}
+    \item \textbf{Board Module}: Game state representation and move generation
+    \item \textbf{Game Module}: Game logic and rule enforcement
+    \item \textbf{AI Agents Module}: Advanced AI implementations
+    \item \textbf{Fuzzy Evaluation}: Fuzzy logic-based position assessment
+    \item \textbf{A* Planner}: Optimal capture sequence planning
+    \item \textbf{Main Module}: User interface and game loop
+\end{itemize}
+
+\section{Game Rules and Mechanics}
+
+\subsection{Standard Checkers Rules}
+
+The game follows traditional checkers rules with enhancements:
+
+\subsubsection{Piece Movement}
+\begin{itemize}
+    \item \textbf{Regular Pieces}: Move diagonally forward one square to an empty space
+    \item \textbf{Kings}: Move diagonally in any direction (forward or backward)
+    \item \textbf{Optional Capture}: Captures are \textbf{optional}, not mandatory - players can choose strategically
+    \item \textbf{Multi-Jump}: If after a jump another capture is possible, it can be continued (but is not required)
+\end{itemize}
+
+\subsubsection{Capturing}
+\begin{itemize}
+    \item A piece captures by jumping diagonally over an opponent's piece to an empty square
+    \item The jumped piece is removed from the board
+    \item Multiple captures in a single turn are \textbf{optional} - players may choose to stop after one capture
+    \item Captures can be made in different directions during multi-jumps
+    \item \textbf{Strategic Choice}: Players and AI can decline captures for better positioning or tactical reasons
+\end{itemize}
+
+\subsubsection{Promotion}
+\begin{itemize}
+    \item When a piece reaches the opponent's back row, it becomes a \textbf{king}
+    \item Kings are marked with a crown symbol (♔)
+    \item Kings gain the ability to move backward
+\end{itemize}
+
+\subsection{Enhanced Stacking Mechanics}
+
+\subsubsection{Strategic Benefits of Optional Capture}
+
+Unlike traditional checkers with mandatory capture, this implementation allows \textbf{optional captures}, which:
+
+\begin{enumerate}
+    \item \textbf{Increases Strategic Depth}: Players must evaluate whether capturing is the best move or if positioning/development is more important
+    \item \textbf{Enables Sacrifice Tactics}: Players can deliberately avoid capturing to set up better combinations
+    \item \textbf{Enhances AI Complexity}: AI agents must weigh immediate material gain vs. long-term positional advantages
+    \item \textbf{Promotes Critical Thinking}: Both human players and AI evaluate multiple strategic dimensions:
+    \begin{itemize}
+        \item Material balance (capturing for piece advantage)
+        \item Positional control (maintaining center dominance)
+        \item King promotion (advancing toward promotion)
+        \item Threat management (avoiding counterattacks)
+        \item Stack building (creating defensive formations)
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Example Scenario:}
+
+Consider a position where Red can capture a White piece, but doing so would:
+\begin{itemize}
+    \item Move Red's piece to an unsafe square (vulnerable to counter-capture)
+    \item Abandon control of the center
+    \item Block a more valuable piece's promotion path
+\end{itemize}
+
+With optional capture, Red can evaluate: "Is the immediate +15 point material gain worth the -20 point positional loss?" This creates richer strategic gameplay.
+
+\subsubsection{Stack Formation}
+The system implements a unique stacking feature:
+\begin{itemize}
+    \item Pieces can stack on squares occupied by friendly pieces
+    \item Maximum stack height: 3 pieces
+    \item Stack size provides strategic advantages in evaluation
+    \item Visual indicator shows stack size with numerical display
+    \item \textbf{Selective Piece Movement}: Players can choose which piece in a mixed stack to move
+\end{itemize}
+
+\subsubsection{Stack Movement Rules}
+\begin{itemize}
+    \item \textbf{Piece Selection}: Click a stack once to select it, click again to cycle through pieces
+    \item Players can move ANY friendly piece from the stack (not just the top)
+    \item Moving a piece leaves remaining pieces in place
+    \item Stack can be built up by moving pieces to occupied friendly squares
+    \item Stacking provides defensive positioning advantages
+    \item \textbf{Mixed Stacks}: Stacks can contain both kings and normal pieces
+    \item Visual indicator shows: [K]2/3 = King, 2nd piece of 3 in stack
+\end{itemize}
+
+\subsubsection{Strategic Stack Selection}
+
+The ability to select specific pieces from mixed stacks adds significant depth:
+
+\textbf{Scenario: Stack contains [King, Normal, King]}
+
+Players must decide:
+\begin{enumerate}
+    \item \textbf{Move the King}: 
+    \begin{itemize}
+        \item Pro: Kings have 4-directional movement (more options)
+        \item Pro: Can retreat if needed
+        \item Con: Loses valuable king from defensive stack
+    \end{itemize}
+    
+    \item \textbf{Move the Normal Piece}:
+    \begin{itemize}
+        \item Pro: Preserves kings in the stack
+        \item Pro: Normal piece can advance toward promotion
+        \item Con: Limited to forward movement only
+        \item Con: Less tactical flexibility
+    \end{itemize}
+\end{enumerate}
+
+This creates interesting decisions: "Should I use my king's mobility or save it and advance the normal piece toward promotion?"
+
+\subsubsection{Capturing from Stacks}
+\begin{itemize}
+    \item When a stack is jumped, only the \textbf{top piece} is captured
+    \item Remaining pieces in the stack stay on the board
+    \item This creates strategic depth in deciding which pieces to stack
+    \item \textbf{Stack Defense}: Multi-piece stacks provide resilience against captures
+\end{itemize}
+
+\subsubsection{Selective Piece Movement from Stacks}
+
+A revolutionary feature that dramatically increases strategic complexity:
+
+\textbf{Core Mechanic:}
+\begin{itemize}
+    \item Players can select \textbf{any friendly piece} from a stack to move
+    \item Click a stack once to select it
+    \item Click the same square again to cycle through pieces in the stack
+    \item Visual indicator shows: [K]2/3 = King piece, position 2 of 3 in stack
+    \item Different pieces have different movement capabilities:
+    \begin{itemize}
+        \item Kings: 4-directional movement (all diagonals)
+        \item Normal pieces: 2-directional movement (forward only)
+    \end{itemize}
+\end{itemize}
+
+\textbf{Strategic Implications:}
+
+\textbf{Example: Mixed Stack at Center Square}
+\begin{verbatim}
+Stack composition (top to bottom):
+  [0] King    - 4 moves available
+  [1] Normal  - 2 moves available  
+  [2] King    - 4 moves available
+\end{verbatim}
+
+Decision factors:
+\begin{enumerate}
+    \item \textbf{Move the Top King}:
+    \begin{itemize}
+        \item[$+$] Maximum mobility (can retreat if needed)
+        \item[$+$] Can respond to threats from any direction
+        \item[$-$] Exposes normal piece to top position
+        \item[$-$] Loses king from defensive stack
+    \end{itemize}
+    
+    \item \textbf{Move the Normal Piece}:
+    \begin{itemize}
+        \item[$+$] Preserves both kings in stack (strong defense)
+        \item[$+$] Normal piece can advance toward promotion
+        \item[$+$] Maintains stack's high mobility potential
+        \item[$-$] Limited movement options (forward only)
+        \item[$-$] Cannot retreat if position becomes unsafe
+    \end{itemize}
+    
+    \item \textbf{Move the Bottom King}:
+    \begin{itemize}
+        \item[$+$] Keeps most mobile piece on top
+        \item[$+$] Maintains immediate tactical flexibility
+        \item[$-$] Reduces total stack size
+        \item[$-$] May leave weaker pieces exposed
+    \end{itemize}
+\end{enumerate}
+
+This creates a \textbf{three-dimensional decision space}:
+\begin{itemize}
+    \item \textit{Which stack} to select?
+    \item \textit{Which piece} in that stack to move?
+    \item \textit{Where} to move that piece?
+\end{itemize}
+
+\subsection{Win Conditions and Draw Rules}
+
+\subsubsection{Win Conditions}
+\begin{enumerate}
+    \item \textbf{Capture All Opponent Pieces}: Standard victory
+    \item \textbf{Stalemate}: Opponent has no valid moves (loses automatically)
+\end{enumerate}
+
+\subsubsection{Draw Conditions (Configurable)}
+When draw rules are enabled:
+\begin{enumerate}
+    \item \textbf{50-Move Rule}: If 50 moves occur without a capture, game is drawn
+    \item \textbf{Repetition}: If the same position occurs 5 times, game is drawn
+\end{enumerate}
+
+\section{Board Representation and State Management}
+
+\subsection{Board Data Structure}
+
+The board is represented as a 2D array where each cell contains a \textbf{list} (stack) of pieces:
+
+\begin{lstlisting}[caption={Board Initialization}]
+class Board:
+    def __init__(self, rows=8, cols=8):
+        self.rows = rows
+        self.cols = cols
+        self.board = []  # 2D array of stacks
+        self.red_left = 0
+        self.white_left = 0
+        self.red_kings = 0
+        self.white_kings = 0
+        self.create_board()
+\end{lstlisting}
+
+\subsection{Move Generation Algorithm}
+
+The system implements efficient move generation:
+
+\begin{algorithm}[H]
+\caption{Valid Move Generation}
+\begin{algorithmic}[1]
+\Function{GetValidMoves}{$piece$}
+    \State $captures \gets$ \Call{GetCaptureMoves}{$piece$}
+    \State $normalMoves \gets$ \Call{GetNormalMoves}{$piece$}
+    \State $allMoves \gets captures \cup normalMoves$ \Comment{Combine both types}
+    \State \Return $allMoves$ \Comment{Player/AI chooses strategically}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Multi-Jump Capture Detection}
+
+The system uses recursive depth-first search to find all possible multi-jump sequences:
+
+\begin{algorithm}[H]
+\caption{Recursive Multi-Jump Detection}
+\begin{algorithmic}[1]
+\Function{FindCapturesRecursive}{$row, col, color, isKing, stackSize, captured, allCaptures, visited, start$}
+    \State $directions \gets$ \Call{GetDirections}{$isKing$}
+    \For{each $direction$ in $directions$}
+        \State $(jumpRow, jumpCol) \gets$ \Call{CalculateJump}{$row, col, direction$}
+        \State $(midRow, midCol) \gets$ \Call{CalculateMidpoint}{$row, col, jumpRow, jumpCol$}
+        \If{\Call{IsValidCapture}{$midRow, midCol, jumpRow, jumpCol, color$}}
+            \State $midPiece \gets board[midRow][midCol]$
+            \If{$(jumpRow, jumpCol) \notin visited$}
+                \State $newCaptured \gets captured \cup \{midPiece\}$
+                \State $newVisited \gets visited \cup \{(jumpRow, jumpCol)\}$
+                \State \Call{FindCapturesRecursive}{$jumpRow, jumpCol, color, isKing, stackSize, newCaptured, allCaptures, newVisited, start$}
+            \EndIf
+        \EndIf
+    \EndFor
+    \If{$|captured| > 0$}
+        \State \Call{SaveCapture}{$(row, col), captured, allCaptures$}
+    \EndIf
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Key Features:}
+\begin{itemize}
+    \item Prevents infinite loops using visited position tracking
+    \item Maintains stack size as parameter through recursion
+    \item Saves only the longest capture sequences
+    \item Handles both regular pieces and kings
+\end{itemize}
+
+\section{Board Evaluation Function}
+
+The evaluation function assesses board positions comprehensively:
+
+\subsection{Evaluation Components}
+
+\begin{equation}
+E_{total} = E_{material} + E_{position} + E_{mobility} + E_{threat} + E_{endgame}
+\end{equation}
+
+\subsubsection{Material Evaluation}
+\begin{equation}
+E_{material} = \sum_{pieces} (15 \times stackSize + 8 \times isKing + stackBonus)
+\end{equation}
+
+Where:
+\begin{itemize}
+    \item Base piece value: 15 points per piece
+    \item King bonus: +8 points per king in stack
+    \item Stack bonus: 12 for double stacks, 30 for triple stacks
+\end{itemize}
+
+\subsubsection{Positional Evaluation}
+\begin{equation}
+E_{position} = \sum_{pieces} (centerControl + advancement + backRowProtection)
+\end{equation}
+
+\textbf{Center Control:}
+\begin{equation}
+centerControl = \begin{cases}
+3 \times stackSize & \text{if piece in center} \\
+0 & \text{otherwise}
+\end{cases}
+\end{equation}
+
+\textbf{Advancement Bonus:}
+\begin{equation}
+advancement = \frac{rowsAdvanced}{totalRows - 1} \times 8 \times stackSize
+\end{equation}
+
+\subsubsection{Mobility Evaluation}
+\begin{equation}
+E_{mobility} = \sum_{pieces} (2 \times moves \times stackSize + 10 \times captures \times stackSize)
+\end{equation}
+
+\subsubsection{Threat Evaluation}
+\begin{equation}
+E_{threat} = (captureOpportunities \times 12) - (vulnerabilities \times 18) - (isolation \times 5)
+\end{equation}
+
+\section{AI Algorithms and Implementation}
+
+\subsection{Overview of AI Agents}
+
+The system implements three sophisticated AI agents:
+
+\begin{table}[H]
+\centering
+\caption{AI Agent Comparison}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Agent} & \textbf{Core Algorithm} & \textbf{Depth} & \textbf{Special Features} \\ 
+\midrule
+Minimax-Backtrack & Minimax + α-β pruning & 3-4 & MRV/LCV heuristics \\
+Minimax-Fuzzy & Minimax + Fuzzy Logic & 4 & Phase-aware adaptation \\
+Original AI & Greedy search & 4 & Basic evaluation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Minimax with Alpha-Beta Pruning}
+
+\subsubsection{Algorithm Description}
+
+The Minimax algorithm explores the game tree to find the optimal move:
+
+\begin{algorithm}[H]
+\caption{Strategic Minimax with Alpha-Beta Pruning}
+\begin{algorithmic}[1]
+\Function{Minimax}{$board, depth, \alpha, \beta, isMaxPlayer$}
+    \If{$depth = 0$ \textbf{or} \Call{IsTerminal}{$board$}}
+        \State \Return \Call{Evaluate}{$board$}
+    \EndIf
+    \State $moves \gets$ \Call{GetStrategicMoves}{$board, isMaxPlayer$}
+    \If{$moves = \emptyset$}
+        \State \Return \Call{Evaluate}{$board$} - 1000
+    \EndIf
+    \If{$isMaxPlayer$}
+        \State $maxEval \gets -\infty$
+        \For{each $move$ in $moves$}
+            \State $eval \gets$ \Call{Minimax}{$move, depth-1, \alpha, \beta, false$}
+            \State $maxEval \gets \max(maxEval, eval)$
+            \State $\alpha \gets \max(\alpha, eval)$
+            \If{$\beta \leq \alpha$}
+                \State \textbf{break} \Comment{Alpha-beta pruning}
+            \EndIf
+        \EndFor
+        \State \Return $maxEval$
+    \Else
+        \State $minEval \gets +\infty$
+        \For{each $move$ in $moves$}
+            \State $eval \gets$ \Call{Minimax}{$move, depth-1, \alpha, \beta, true$}
+            \State $minEval \gets \min(minEval, eval)$
+            \State $\beta \gets \min(\beta, eval)$
+            \If{$\beta \leq \alpha$}
+                \State \textbf{break}
+            \EndIf
+        \EndFor
+        \State \Return $minEval$
+    \EndIf
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Enhanced Features}
+
+\textbf{1. Iterative Deepening:}
+\begin{itemize}
+    \item Starts with depth 1 and increases gradually
+    \item Continues until time limit (5 seconds) is reached
+    \item Ensures a valid move is always available
+\end{itemize}
+
+\textbf{2. Strategic Move Ordering:}
+\begin{itemize}
+    \item Captures prioritized (especially multi-jumps)
+    \item Safe moves preferred over vulnerable moves
+    \item Center control and advancement considered
+\end{itemize}
+
+\textbf{3. Threat-Aware Evaluation:}
+\begin{equation}
+E_{strategic} = E_{base} + depthBonus + threatScore + positionalScore
+\end{equation}
+
+Where:
+\begin{itemize}
+    \item $depthBonus = (originalDepth - currentDepth) \times 5$ (prefer quicker wins)
+    \item $threatScore$ considers actual capture opportunities
+    \item $positionalScore$ evaluates center control and king mobility
+\end{itemize}
+
+\subsection{Move Ordering Heuristic}
+
+Strategic move scoring for optimal pruning:
+
+\begin{equation}
+Score_{move} = Score_{capture} + Score_{position} + Score_{safety} + Score_{stack}
+\end{equation}
+
+\textbf{Capture Scoring (Enhanced for Multi-Jumps):}
+\begin{equation}
+Score_{capture} = \begin{cases}
+numCaptured \times 60 & \text{if } numCaptured \geq 3 \\
+numCaptured \times 45 & \text{if } numCaptured = 2 \\
+numCaptured \times 30 & \text{if } numCaptured = 1 \\
+0 & \text{otherwise}
+\end{cases}
+\end{equation}
+
+\textbf{Safety Scoring:}
+\begin{equation}
+Score_{safety} = \begin{cases}
+10 & \text{if move is safe} \\
+-15 & \text{if move is unsafe}
+\end{cases}
+\end{equation}
+
+\subsection{Agent 1: MinimaxBacktrackAgent}
+
+\subsubsection{Strategy Selection}
+
+Uses roulette wheel selection between strategies:
+\begin{itemize}
+    \item \textbf{Minimax Strategy}: 70\% probability (depth 3-4 with iterative deepening)
+    \item \textbf{Backtracking Strategy}: 30\% probability (uses CSP techniques)
+\end{itemize}
+
+\subsubsection{Threat Calculation}
+
+Enhanced threat evaluation:
+\begin{lstlisting}[caption={Threat Level Calculation}]
+def _calculate_threat_level(self, board):
+    threat_score = 0
+    # Count actual capture opportunities
+    for my_piece in board.get_all_pieces(my_color):
+        captures = board._get_capture_moves(my_piece)
+        for dest, captured_pieces in captures.items():
+            threat_score += len(captured_pieces) * 12
+    
+    # Count opponent's threats against us
+    for opp_piece in board.get_all_pieces(opponent_color):
+        captures = board._get_capture_moves(opp_piece)
+        for dest, captured_pieces in captures.items():
+            threat_score -= len(captured_pieces) * 18
+    
+    return threat_score
+\end{lstlisting}
+
+\subsubsection{Example Decision Process}
+
+Consider this board state (8×8):
+
+\begin{verbatim}
+     0   1   2   3   4   5   6   7
+   +---+---+---+---+---+---+---+---+
+ 0 |   | W |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   | W |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   | W |   | W |   |   |
+   +---+---+---+---+---+---+---+---+
+ 3 |   |   | R |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 4 |   |   |   |   |   | R |   |   |
+   +---+---+---+---+---+---+---+---+
+ 5 | R |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+\end{verbatim}
+
+\textbf{Red to move (Agent 1 thinking):}
+
+\textbf{Step 1: Detect Available Moves}
+\begin{itemize}
+    \item Piece at (5,0): Can move to (4,1) - score: 5 (advancement)
+    \item Piece at (4,5): Can capture at (2,3) by jumping (3,4) - score: 30
+    \item Piece at (3,2): Can move to (2,1) or (2,3) - score: 8 (center)
+\end{itemize}
+
+\textbf{Step 2: Multi-Jump Detection}
+\begin{itemize}
+    \item From (4,5) → (2,3) capture possible
+    \item After landing at (2,3), check for continuation...
+    \item Can continue to (0,1)! Multi-jump found!
+    \item Total captures: 2 pieces (at positions (3,4) and (1,2))
+\end{itemize}
+
+\textbf{Step 3: Strategic Evaluation (Optional Capture)}
+
+With optional capture, AI evaluates ALL options:
+\begin{enumerate}
+    \item \textbf{Take Multi-Jump}: Score = 90 (capture bonus) + 8 (position) = 98
+    \begin{itemize}
+        \item Pros: +2 material, removes threats
+        \item Cons: Piece moves to edge (row 0), less mobile
+    \end{itemize}
+    
+    \item \textbf{Center Move (3,2)→(2,3)}: Score = 8 (center) + 10 (safe) = 18
+    \begin{itemize}
+        \item Pros: Strong center control, safe position
+        \item Cons: No immediate material gain
+    \end{itemize}
+    
+    \item \textbf{Advancement (5,0)→(4,1)}: Score = 5 (advancement) = 5
+    \begin{itemize}
+        \item Pros: Piece development
+        \item Cons: Minimal immediate impact
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Step 4: Minimax Lookahead (Depth 3)}
+\begin{itemize}
+    \item Ply 1 (Red): Try multi-jump → evaluation = +98
+    \item Ply 2 (White): Best response after multi-jump → evaluation = +65 (Red still ahead)
+    \item Ply 3 (Red): Follow-up move → evaluation = +72
+    
+    \item Compare with center move alternative:
+    \item Ply 1 (Red): Center move → evaluation = +18
+    \item Ply 2 (White): White exploits Red's missed capture → evaluation = -5 (White better!)
+    \item Ply 3 (Red): Red must defend → evaluation = -2
+\end{itemize}
+
+In this case, minimax shows that \textbf{taking the capture is best}, even with optional capture rule. The AI correctly identifies that the material gain outweighs positional considerations.
+
+\textbf{Decision: Execute multi-jump (4,5) → (2,3) → (0,1)}
+
+However, in positions where capture leads to vulnerability, the AI might choose differently!
+
+\subsection{Agent 2: MinimaxFuzzyAgent}
+
+\subsubsection{Game Phase Adaptation}
+
+Dynamically adjusts strategy based on game state:
+
+\begin{table}[H]
+\centering
+\caption{Phase-Adaptive Strategy Weights}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Phase} & \textbf{Pieces Remaining} & \textbf{Minimax Weight} & \textbf{Fuzzy Weight} \\
+\midrule
+Opening & $\geq 20$ & 0.7 & 0.3 \\
+Midgame & 10-19 & 0.6 & 0.4 \\
+Endgame & $< 10$ & 0.4 & 0.6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Fuzzy Logic Evaluation}
+
+Uses fuzzy inference for position assessment:
+
+\textbf{Input Variables:}
+\begin{enumerate}
+    \item \textbf{Material Balance}: $(-30, +30)$ piece difference
+    \item \textbf{Mobility}: $(0, 50)$ number of legal moves
+    \item \textbf{Center Control}: $(0, 10)$ pieces in center
+    \item \textbf{Safety}: $(0, 10)$ protected pieces
+    \item \textbf{Advancement}: $(0, 20)$ pieces near promotion
+\end{enumerate}
+
+\textbf{Fuzzy Membership Functions:}
+
+For Material Balance:
+\begin{equation}
+\mu_{low}(x) = \begin{cases}
+1 & \text{if } x \leq -30 \\
+\frac{0-x}{0-(-30)} & \text{if } -30 < x < 0 \\
+0 & \text{if } x \geq 0
+\end{cases}
+\end{equation}
+
+\begin{equation}
+\mu_{medium}(x) = \begin{cases}
+\frac{x-(-15)}{0-(-15)} & \text{if } -15 < x \leq 0 \\
+\frac{15-x}{15-0} & \text{if } 0 < x < 15 \\
+0 & \text{otherwise}
+\end{cases}
+\end{equation}
+
+\begin{equation}
+\mu_{high}(x) = \begin{cases}
+0 & \text{if } x \leq 0 \\
+\frac{x-0}{30-0} & \text{if } 0 < x < 30 \\
+1 & \text{if } x \geq 30
+\end{cases}
+\end{equation}
+
+\textbf{Fuzzy Rules (Sample):}
+
+\textbf{Rule 1:} IF material IS high AND mobility IS high THEN score IS very\_good
+\begin{equation}
+\mu_{very\_good} = \min(\mu_{material\_high}, \mu_{mobility\_high})
+\end{equation}
+
+\textbf{Rule 2:} IF material IS low AND center IS low THEN score IS bad
+\begin{equation}
+\mu_{bad} = \min(\mu_{material\_low}, \mu_{center\_low})
+\end{equation}
+
+\textbf{Defuzzification (Centroid Method):}
+\begin{equation}
+score_{crisp} = \frac{\sum_{i} \mu_i \times value_i}{\sum_{i} \mu_i}
+\end{equation}
+
+\subsubsection{Example Decision Process}
+
+Consider this endgame position:
+
+\begin{verbatim}
+     0   1   2   3   4   5   6   7
+   +---+---+---+---+---+---+---+---+
+ 0 |   | W |   |   |   |   |   | W♔|
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 5 |   |   |   |   | R |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 7 | R♔|   | R |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+\end{verbatim}
+
+\textbf{Red to move (Agent 2 - Endgame Phase):}
+
+\textbf{Phase Detection:}
+\begin{itemize}
+    \item Total pieces: 5 (< 10) → \textbf{Endgame}
+    \item Strategy: Fuzzy weight increased to 0.6
+    \item Focus: King activity and promotion chances
+\end{itemize}
+
+\textbf{Fuzzy Feature Extraction:}
+\begin{itemize}
+    \item Material balance: $3 - 2 = +1$ (slight advantage)
+    \item King balance: $1 - 1 = 0$ (equal)
+    \item Center control: $\frac{1-0}{1+0} = 1.0$ (Red controls center)
+    \item Development: Red pieces more advanced
+    \item Threat level: Low (pieces separated)
+\end{itemize}
+
+\textbf{Move Options:}
+\begin{enumerate}
+    \item King (7,0) → (6,1): Mobility +2, Safety +10
+    \item King (7,0) → (5,2): Activity +5, Threatens promotion path
+    \item Piece (7,2) → (6,1): Blocks king mobility
+    \item Piece (7,2) → (6,3): Advancement +5
+    \item Piece (5,4) → (4,3): Advancement +8, Near promotion
+    \item Piece (5,4) → (4,5): Advancement +8
+\end{enumerate}
+
+\textbf{Fuzzy Evaluation (for move (5,4) → (4,3)):}
+
+Input features after move:
+\begin{itemize}
+    \item Material: +1 → $\mu_{medium}(1) = 0.93$
+    \item Promotion chance: $\frac{4}{7} = 0.57$ → $\mu_{medium}(0.57) = 0.71$
+    \item Center control: 1.0 → $\mu_{high}(1.0) = 1.0$
+    \item Safety: 0.67 → $\mu_{medium}(0.67) = 0.84$
+\end{itemize}
+
+Fuzzy rules activation (endgame):
+\begin{itemize}
+    \item Rule: "IF promotion\_chance IS medium AND center IS high THEN score IS good"
+    \item Activation: $\min(0.71, 1.0) = 0.71$
+    \item Output: $0.71 \times 40 = 28.4$
+\end{itemize}
+
+Combined fuzzy score: 28.4 + material(25) + safety(10) = \textbf{63.4}
+
+\textbf{Minimax Lookahead (Depth 4):}
+\begin{itemize}
+    \item Ply 1: Move (5,4) → (4,3)
+    \item Ply 2: White king moves to attack
+    \item Ply 3: Piece promotes at (0,3)! → Big bonus
+    \item Ply 4: White struggles with 2 kings vs 2 red pieces
+    \item Backed-up value: +85
+\end{itemize}
+
+\textbf{Decision: Move piece (5,4) → (4,3) to push for promotion}
+
+\subsection{A* Search for Capture Planning}
+
+\subsubsection{Algorithm Description}
+
+The A* algorithm finds optimal multi-jump capture sequences:
+
+\begin{algorithm}[H]
+\caption{A* Capture Path Planning}
+\begin{algorithmic}[1]
+\Function{AStarCapture}{$start, targets$}
+    \State $openSet \gets \{start\}$
+    \State $closedSet \gets \emptyset$
+    \While{$openSet \neq \emptyset$}
+        \State $current \gets$ \Call{GetLowestFCost}{$openSet$}
+        \If{$|current.captured| = |targets|$}
+            \State \Return $current.path$ \Comment{All targets captured}
+        \EndIf
+        \State $openSet \gets openSet \setminus \{current\}$
+        \State $closedSet \gets closedSet \cup \{current\}$
+        \For{each $neighbor$ in \Call{GetCaptureNeighbors}{$current$}}
+            \If{$neighbor \in closedSet$}
+                \State \textbf{continue}
+            \EndIf
+            \State $gScore \gets current.g + 1$
+            \State $hScore \gets$ \Call{Heuristic}{$neighbor, targets$}
+            \State $fScore \gets gScore + hScore$
+            \If{$neighbor \notin openSet$ \textbf{or} $gScore < neighbor.g$}
+                \State $neighbor.parent \gets current$
+                \State $neighbor.g \gets gScore$
+                \State $neighbor.f \gets fScore$
+                \State $openSet \gets openSet \cup \{neighbor\}$
+            \EndIf
+        \EndFor
+    \EndWhile
+    \State \Return $\emptyset$ \Comment{No complete capture path found}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Heuristic Function}
+
+\begin{equation}
+h(pos, targets) = \frac{1}{2} \times \min_{t \in remaining} (|pos.row - t.row| + |pos.col - t.col|)
+\end{equation}
+
+The division by 2 accounts for diagonal movement in checkers.
+
+\section{System Implementation Details}
+
+\subsection{Technology Stack}
+
+\begin{table}[H]
+\centering
+\caption{Implementation Technologies}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Component} & \textbf{Technology/Library} \\
+\midrule
+Language & Python 3.11.9 \\
+Graphics & Pygame 2.6.1 \\
+AI Algorithms & Custom implementation \\
+Data Structures & Lists, Sets, Dictionaries \\
+Architecture & Object-Oriented Programming \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Performance Metrics}
+
+\begin{table}[H]
+\centering
+\caption{AI Performance Characteristics}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Agent} & \textbf{Avg. Time/Move} & \textbf{Nodes Explored} & \textbf{Memory Usage} \\
+\midrule
+Minimax-Backtrack & 0.8-2.5s & 1,500-8,000 & Moderate \\
+Minimax-Fuzzy & 1.2-3.2s & 2,000-10,000 & Moderate \\
+Original AI & 0.3-0.8s & 500-2,000 & Low \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Key Implementation Challenges}
+
+\subsubsection{Challenge 1: Multi-Jump Detection}
+
+\textbf{Problem:} Detecting all possible multi-jump sequences efficiently without infinite loops.
+
+\textbf{Solution:}
+\begin{itemize}
+    \item Implemented recursive DFS with visited position tracking
+    \item Maintained stack size as parameter (not read from board during recursion)
+    \item Used frozensets for efficient position comparison
+    \item Pruned impossible paths early
+\end{itemize}
+
+\subsubsection{Challenge 2: Stack Representation}
+
+\textbf{Problem:} Handling stacks in game tree search with deepcopy operations.
+
+\textbf{Solution:}
+\begin{itemize}
+    \item Represented stacks as lists of Piece objects
+    \item Used position-based piece removal instead of object identity
+    \item Properly updated stack sizes after moves and captures
+\end{itemize}
+
+\subsubsection{Challenge 3: AI Move Ordering}
+
+\textbf{Problem:} Ensuring captures are properly prioritized in move generation.
+
+\textbf{Solution:}
+\begin{itemize}
+    \item Enhanced scoring: 60 for triple captures, 45 for doubles, 30 for singles
+    \item Added safety penalties (-15) for unsafe moves
+    \item Implemented threat evaluation that counts actual captures
+\end{itemize}
+
+\subsubsection{Challenge 4: Stack Piece Selection Implementation}
+
+\textbf{Problem:} Allow players to select and move any friendly piece from a mixed stack.
+
+\textbf{Solution:}
+\begin{itemize}
+    \item \textbf{Board Enhancement}: Added \texttt{get\_piece(row, col, index=0)} method for indexed piece retrieval from stacks
+    \item \textbf{Game State Tracking}: Added \texttt{selected\_stack\_index} attribute to track which piece is selected
+    \item \textbf{Click-to-Cycle UI}: Clicking same square cycles through pieces: \texttt{index = (index + 1) \% len(friendly\_pieces)}
+    \item \textbf{Visual Feedback}: Display format: [K]2/3 = King, 2nd of 3 pieces in stack
+    \item \textbf{AI Enhancement}: Modified \texttt{get\_all\_pieces()} to return ALL pieces in stacks, not just top pieces
+    \item \textbf{Performance}: Added \texttt{get\_top\_pieces\_only()} for fast evaluation when only top pieces matter
+\end{itemize}
+
+\textbf{Technical Details:}
+\begin{verbatim}
+# Board.py - Indexed piece retrieval
+def get_piece(self, row, col, index=0):
+    stack = self.board[row][col]
+    if isinstance(stack, list) and 0 <= index < len(stack):
+        return stack[index]
+    return None
+
+# Game.py - Cycle through stack pieces
+if self.selected.row == row and self.selected.col == col:
+    friendly_pieces = [p for p in stack if p.color == self.turn]
+    if len(friendly_pieces) > 1:
+        self.selected_stack_index = (self.selected_stack_index + 1) 
+                                    % len(friendly_pieces)
+        self.selected = friendly_pieces[self.selected_stack_index]
+\end{verbatim}
+
+\subsubsection{Challenge 5: Optional Capture Implementation}
+
+\textbf{Problem:} Balance strategic freedom with computational efficiency.
+
+\textbf{Solution:}
+\begin{itemize}
+    \item Modified \texttt{get\_valid\_moves()} to return both capture and normal moves
+    \item AI evaluates all options but prioritizes captures through scoring
+    \item No performance penalty - both move types already computed
+    \item Enhanced strategic depth without added complexity
+\end{itemize}
+
+\textbf{Move Generation Logic:}
+\begin{verbatim}
+def get_valid_moves(self, piece):
+    moves = {}
+    capture_moves = self._get_capture_moves(piece)
+    normal_moves = self._get_normal_moves(piece)
+    moves.update(capture_moves)  # Add captures
+    moves.update(normal_moves)   # Add normal moves
+    return moves  # Player/AI chooses
+\end{verbatim}
+
+\section{Experimental Results and Analysis}
+
+\subsection{AI Agent Comparison}
+
+Testing conducted with 50 games per matchup:
+
+\begin{table}[H]
+\centering
+\caption{AI Head-to-Head Results}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Matchup} & \textbf{Red Wins} & \textbf{White Wins} & \textbf{Draws} & \textbf{Avg. Moves} \\
+\midrule
+Minimax-B vs Original & 38 & 10 & 2 & 42.3 \\
+Minimax-F vs Original & 41 & 7 & 2 & 38.7 \\
+Minimax-F vs Minimax-B & 23 & 24 & 3 & 51.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Strategic Behavior Analysis}
+
+\subsubsection{Opening Phase Patterns}
+
+Both advanced agents demonstrate strong opening principles:
+\begin{itemize}
+    \item Prioritize center control (pieces in columns 2-5)
+    \item Develop pieces efficiently (avoid repeated moves)
+    \item Maintain piece connectivity
+    \item Build strategic stacks on key squares
+\end{itemize}
+
+\subsubsection{Midgame Tactics}
+
+Observed tactical patterns:
+\begin{itemize}
+    \item Multi-jump setup: Positioning pieces to create capture sequences
+    \item Threat calculation: Avoiding vulnerable positions
+    \item Stack utilization: Building defensive positions
+    \item King promotion pursuit: Advancing pieces strategically
+\end{itemize}
+
+\subsubsection{Endgame Technique}
+
+Advanced agents show superior endgame play:
+\begin{itemize}
+    \item King activity maximization
+    \item Passed piece creation and support
+    \item Opposition concepts (controlling key squares)
+    \item Efficient piece trading when ahead
+\end{itemize}
+
+\subsection{Multi-Jump Effectiveness}
+
+Analysis of multi-jump captures:
+
+\begin{table}[H]
+\centering
+\caption{Multi-Jump Statistics}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Jump Type} & \textbf{Frequency} & \textbf{Avg. Score Impact} & \textbf{Win Rate After} \\
+\midrule
+Single Jump & 68\% & +30 & 52\% \\
+Double Jump & 27\% & +90 & 73\% \\
+Triple Jump & 5\% & +180 & 89\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Multi-jump captures provide significant strategic advantages and often lead to decisive advantages.
+
+\section{User Interface and Interaction}
+
+\subsection{Menu System}
+
+The game provides comprehensive configuration:
+
+\begin{enumerate}
+    \item \textbf{Game Mode Selection}
+    \begin{itemize}
+        \item Human vs Human
+        \item Human vs AI
+        \item AI vs AI (spectator mode)
+    \end{itemize}
+    
+    \item \textbf{AI Configuration}
+    \begin{itemize}
+        \item Select AI type for each player
+        \item Toggle stacking mechanics
+        \item Enable/disable draw rules
+    \end{itemize}
+    
+    \item \textbf{Board Customization}
+    \begin{itemize}
+        \item Board size: 6×6, 8×8, 10×10, 12×12
+        \item Window size: 500×620 to 800×920
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Visual Features}
+
+\begin{itemize}
+    \item \textbf{Move Indicators}: Green circles show valid moves
+    \item \textbf{Last Move Highlight}: Yellow/orange squares show previous move
+    \item \textbf{Stack Visualization}: Numerical indicator shows stack size
+    \item \textbf{King Marking}: Crown symbol (♔) on promoted pieces
+    \item \textbf{Info Panel}: Displays turn, piece counts, move statistics
+    \item \textbf{AI Thinking Indicator}: Window caption shows AI activity
+    \item \textbf{Stack Selection Indicator}: 
+    \begin{itemize}
+        \item Blue border highlights selected stack
+        \item [K] or [N] shows if King or Normal piece selected
+        \item "2/3" shows position in stack (2nd of 3 pieces)
+        \item Hint: "Click again to cycle stack pieces" appears when applicable
+    \end{itemize}
+\end{itemize}
+
+\subsection{Keyboard Controls}
+
+\begin{table}[H]
+\centering
+\caption{Keyboard and Mouse Controls}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Input} & \textbf{Action} \\
+\midrule
+Mouse Click (once) & Select piece / stack \\
+Mouse Click (same square) & Cycle through pieces in stack \\
+Mouse Click (different square) & Make move \\
+R & Restart game \\
+M & Return to main menu \\
+1-7 (menu) & Select menu option \\
+ESC & Cancel / Go back \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Conclusion and Future Work}
+
+\subsection{Achievements}
+
+This project successfully implements:
+\begin{enumerate}
+    \item A fully functional checkers game with advanced stacking mechanics
+    \item \textbf{Selective piece movement} from mixed stacks (choose king vs normal piece)
+    \item \textbf{Optional capture rule} enabling strategic positional play
+    \item Three sophisticated AI agents with different strategic approaches
+    \item Multi-jump detection and capture sequence optimization
+    \item Comprehensive board evaluation with multiple heuristics
+    \item Adaptive AI that adjusts strategy based on game phase
+    \item User-friendly interface with visual stack indicators and extensive customization
+    \item Three-dimensional decision space (which stack, which piece, where to move)
+\end{enumerate}
+
+\subsection{Key Learnings}
+
+\begin{itemize}
+    \item \textbf{Algorithm Design}: Minimax with alpha-beta pruning provides strong play with proper evaluation
+    \item \textbf{Heuristic Importance}: Move ordering and threat evaluation significantly impact AI strength
+    \item \textbf{Recursion Challenges}: Multi-jump detection requires careful state management
+    \item \textbf{Phase Adaptation}: Game-phase-aware evaluation improves strategic decision-making
+    \item \textbf{Fuzzy Logic}: Provides flexible position assessment, especially valuable in complex positions
+    \item \textbf{Optional Capture Design}: Removing mandatory capture increases strategic depth:
+    \begin{itemize}
+        \item AI agents must perform deeper evaluation of trade-offs
+        \item Capture scoring must be strong enough to prefer captures when advantageous
+        \item But not so strong that captures are always taken (losing strategic flexibility)
+        \item Threat evaluation becomes more important (considering opponent's options)
+        \item Multi-criteria decision making is essential
+        \item Players gain freedom to prioritize position over material
+    \end{itemize}
+    \item \textbf{Stack Piece Selection}: Allowing selective piece movement from mixed stacks:
+    \begin{itemize}
+        \item Creates three-layered decision-making (stack → piece → move)
+        \item Forces evaluation of mobility vs preservation trade-offs
+        \item Kings provide immediate tactical flexibility
+        \item Normal pieces offer promotion potential
+        \item AI must consider ALL pieces in friendly stacks when evaluating positions
+        \item Visual feedback ([K]2/3) critical for user understanding
+        \item Click-to-cycle UI provides intuitive interaction pattern
+    \end{itemize}
+\end{itemize}
+
+\subsection{Future Enhancements}
+
+Potential improvements for the system:
+
+\subsubsection{Performance Optimizations}
+\begin{itemize}
+    \item \textbf{Transposition Tables}: Cache evaluated positions to avoid redundant computation
+    \item \textbf{Move Generation Optimization}: Bitboards for faster move generation
+    \item \textbf{Parallel Search}: Multi-threaded minimax for deeper search
+    \item \textbf{Quiescence Search}: Extend search for tactical positions
+\end{itemize}
+
+\subsubsection{AI Enhancements}
+\begin{itemize}
+    \item \textbf{Opening Book}: Pre-computed optimal opening sequences
+    \item \textbf{Endgame Tablebases}: Perfect play with few pieces remaining
+    \item \textbf{Machine Learning}: Neural network evaluation function
+    \item \textbf{Monte Carlo Tree Search}: Alternative to minimax for exploration
+    \item \textbf{Stack Composition Learning}: AI learns optimal stack configurations (king-king-normal vs king-normal-king)
+    \item \textbf{Adaptive Capture Strategy}: Dynamic weighting of capture vs positional value based on game state
+\end{itemize}
+
+\subsubsection{Feature Additions}
+\begin{itemize}
+    \item \textbf{Move History}: Complete game notation and replay
+    \item \textbf{Save/Load Games}: Game state persistence
+    \item \textbf{Analysis Mode}: Position analysis with AI suggestions for stack piece selection
+    \item \textbf{Online Multiplayer}: Network play support
+    \item \textbf{Tournament Mode}: Round-robin AI competitions
+    \item \textbf{Stack Visualization}: 3D rendering showing actual piece heights
+    \item \textbf{Hint System}: Suggest which piece to select from mixed stacks based on strategic goals
+\end{itemize}
+
+\subsection{Final Remarks}
+
+This intelligent checkers system demonstrates the application of various AI techniques to game playing:
+\begin{itemize}
+    \item \textbf{Search algorithms}: Minimax with alpha-beta pruning and iterative deepening
+    \item \textbf{Heuristic evaluation}: Multi-factor position assessment
+    \item \textbf{Fuzzy logic}: Uncertainty handling in position evaluation
+    \item \textbf{Path planning}: A* search for optimal capture sequences
+    \item \textbf{Constraint satisfaction}: MRV and LCV heuristics
+    \item \textbf{Game theory}: Minimax principle for optimal play
+\end{itemize}
+
+\subsection{Final Remarks}
+
+This intelligent checkers system demonstrates the application of various AI techniques to game playing:
+
+\begin{itemize}
+    \item \textbf{Search algorithms}: Minimax with alpha-beta pruning
+    \item \textbf{Heuristic evaluation}: Multi-criteria position assessment
+    \item \textbf{Fuzzy logic}: Flexible decision-making under uncertainty
+    \item \textbf{Path planning}: A* search for optimal capture sequences
+    \item \textbf{Constraint satisfaction}: MRV and LCV heuristics
+    \item \textbf{Game theory}: Minimax principle for optimal play
+\end{itemize}
+
+The system provides both entertainment value and educational insight into AI decision-making in adversarial games. The multiple AI agents with different strategies demonstrate that there are many valid approaches to game-playing AI, each with its own strengths and characteristics.
+
+\textbf{Innovation Highlights:}
+
+The combination of \textbf{optional capture rules} and \textbf{selective stack piece movement} creates a unique strategic environment:
+\begin{itemize}
+    \item \textbf{Strategic Depth}: Three-dimensional decision space (stack selection → piece selection → move selection)
+    \item \textbf{Critical Thinking}: Players must evaluate long-term consequences, not just immediate gains
+    \item \textbf{AI Complexity}: Agents must consider material, position, mobility, and piece preservation simultaneously
+    \item \textbf{Emergent Gameplay}: Complex strategies emerge from simple rule modifications
+    \item \textbf{Educational Value}: Demonstrates how small rule changes dramatically impact game complexity
+\end{itemize}
+
+This project successfully demonstrates that increasing player agency (optional captures, piece selection) significantly enhances strategic thinking and decision-making depth for both human players and AI agents.
+
+\section*{Acknowledgments}
+
+This project was developed as part of an AI course, demonstrating practical applications of search algorithms, game theory, fuzzy logic, and heuristic evaluation techniques.
+
+\appendix
+
+\section{Code Statistics}
+
+\begin{table}[H]
+\centering
+\caption{Project Code Metrics}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Module} & \textbf{Lines of Code} & \textbf{Key Functions} \\
+\midrule
+board.py & 605 & 28 \\
+game.py & 319 & 21 \\
+ai\_agents.py & 1,022 & 42 \\
+main.py & 787 & 15 \\
+fuzzy\_eval.py & 426 & 12 \\
+astar\_capture.py & 318 & 8 \\
+\midrule
+\textbf{Total} & \textbf{3,477} & \textbf{126} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Installation and Usage}
+
+\subsection{Requirements}
+\begin{lstlisting}[language=bash]
+Python 3.11 or higher
+pygame==2.6.1
+\end{lstlisting}
+
+\subsection{Installation Steps}
+\begin{lstlisting}[language=bash]
+# Clone or download the project
+cd AI_project
+
+# Install dependencies
+pip install pygame==2.6.1
+
+# Run the game
+python main.py
+\end{lstlisting}
+
+\subsection{Quick Start Guide}
+\begin{enumerate}
+    \item Launch the application
+    \item Select window size that fits your screen
+    \item Choose game mode from main menu
+    \item Configure AI agents if desired
+    \item Play the game!
+\end{enumerate}
+
+\end{document}

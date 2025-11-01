@@ -2,7 +2,7 @@
 Piece class for checkers game
 """
 import pygame
-from constants import SQUARE_SIZE, GREY, GOLD, CROWN
+from constants import SQUARE_SIZE, GREY, GOLD, CROWN, BLACK, WHITE
 
 class Piece:
     PADDING = 15
@@ -29,24 +29,34 @@ class Piece:
     def draw(self, win, stack_size=1):
         """Draw the piece on the board with stack indicator"""
         radius = SQUARE_SIZE // 2 - self.PADDING
+        
+        # Draw border
         pygame.draw.circle(win, GREY, (self.x, self.y), radius + self.BORDER)
+        # Draw main piece
         pygame.draw.circle(win, self.color, (self.x, self.y), radius)
         
         # Draw stack number if stacked (2 or 3)
         if stack_size > 1:
-            font = pygame.font.SysFont('arial', min(35, SQUARE_SIZE // 2), bold=True)
-            # Use black text for white pieces, white for red pieces
-            text_color = (0, 0, 0) if self.color == (255, 255, 255) else (255, 255, 255)
+            font_size = max(20, SQUARE_SIZE // 3)
+            font = pygame.font.SysFont('arial', font_size, bold=True)
+            
+            # Use contrasting text color
+            if self.color == WHITE:
+                text_color = BLACK
+            else:
+                text_color = WHITE
+                
             stack_text = font.render(str(stack_size), True, text_color)
-            # Position in bottom-right of piece
-            text_x = self.x + radius // 2 - stack_text.get_width() // 2
-            text_y = self.y + radius // 2 - stack_text.get_height() // 2
-            win.blit(stack_text, (text_x, text_y))
+            text_rect = stack_text.get_rect(center=(self.x, self.y))
+            win.blit(stack_text, text_rect)
         
+        # Draw crown for kings
         if self.king:
-            font = pygame.font.SysFont('arial', min(40, SQUARE_SIZE // 2), bold=True)
-            text = font.render(CROWN, True, GOLD)
-            win.blit(text, (self.x - text.get_width() // 2, self.y - text.get_height() // 2))
+            crown_font_size = max(24, SQUARE_SIZE // 2)
+            crown_font = pygame.font.SysFont('arial', crown_font_size, bold=True)
+            crown_text = crown_font.render(CROWN, True, GOLD)
+            crown_rect = crown_text.get_rect(center=(self.x, self.y))
+            win.blit(crown_text, crown_rect)
     
     def move(self, row, col):
         """Move piece to new position"""
@@ -56,4 +66,3 @@ class Piece:
     
     def __repr__(self):
         return f"Piece({self.row}, {self.col}, {'King' if self.king else 'Normal'})"
-

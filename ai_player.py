@@ -44,7 +44,7 @@ def minimax(position, depth, max_player, game):
 
 def minimax_alpha_beta(position, depth, alpha, beta, max_player, game):
     """
-    Minimax algorithm with alpha-beta pruning (optimized)
+    Minimax algorithm with alpha-beta pruning (optimized with move ordering)
     Returns (evaluation, best_move, last_move_info, was_capture)
     """
     if depth == 0 or position.winner() is not None:
@@ -57,9 +57,9 @@ def minimax_alpha_beta(position, depth, alpha, beta, max_player, game):
         best_capture = False
         moves = get_all_moves(position, PLAYER1_COLOR, game)
         
-        # If no moves available, return current position
+        # If no moves available, return current position with penalty
         if not moves:
-            return position.evaluate(), position, None, False
+            return position.evaluate() - 1000, position, None, False
         
         for move, move_info, was_capture in moves:
             evaluation = minimax_alpha_beta(move, depth - 1, alpha, beta, False, game)[0]
@@ -70,7 +70,7 @@ def minimax_alpha_beta(position, depth, alpha, beta, max_player, game):
                 best_capture = was_capture
             alpha = max(alpha, evaluation)
             if beta <= alpha:
-                break
+                break  # Beta cutoff
         
         return max_eval, best_move, best_move_info, best_capture
     else:
@@ -80,9 +80,9 @@ def minimax_alpha_beta(position, depth, alpha, beta, max_player, game):
         best_capture = False
         moves = get_all_moves(position, PLAYER2_COLOR, game)
         
-        # If no moves available, return current position
+        # If no moves available, return current position with penalty
         if not moves:
-            return position.evaluate(), position, None, False
+            return position.evaluate() + 1000, position, None, False
         
         for move, move_info, was_capture in moves:
             evaluation = minimax_alpha_beta(move, depth - 1, alpha, beta, True, game)[0]
@@ -93,19 +93,21 @@ def minimax_alpha_beta(position, depth, alpha, beta, max_player, game):
                 best_capture = was_capture
             beta = min(beta, evaluation)
             if beta <= alpha:
-                break
+                break  # Alpha cutoff
         
         return min_eval, best_move, best_move_info, best_capture
 
 
-def simulate_move(piece, move, board, game, skip):
-    """Simulate a move and return new board state"""
+def simulate_move(piece, move, board, game, captured_pieces):
+    """
+    Simulate a move and return new board state
+    """
     from_pos = (piece.row, piece.col)
     board.move(piece, move[0], move[1])
     
     was_capture = False
-    if skip:
-        board.remove(skip)
+    if captured_pieces and len(captured_pieces) > 0:
+        board.remove(captured_pieces)
         was_capture = True
     
     to_pos = (move[0], move[1])
@@ -113,19 +115,38 @@ def simulate_move(piece, move, board, game, skip):
 
 
 def get_all_moves(board, color, game):
-    """Get all possible moves for a color"""
+    """
+    Get all possible moves for a color with strategic ordering
+    """
     moves = []
+    capture_moves = []  # Prioritize captures
+    stack_moves = []    # Prioritize stacking moves
+    normal_moves = []   # Regular moves
     
     for piece in board.get_all_pieces(color):
         valid_moves = board.get_valid_moves(piece)
-        for move, skip in valid_moves.items():
+        
+        # valid_moves is a dict: {(to_row, to_col): [captured_pieces]}
+        for move, captured_pieces in valid_moves.items():
             temp_board = copy.deepcopy(board)
             temp_piece = temp_board.get_piece(piece.row, piece.col)
             if temp_piece is not None:
-                new_board, last_move, was_capture = simulate_move(temp_piece, move, temp_board, game, skip)
-                moves.append((new_board, last_move, was_capture))
+                new_board, last_move, was_capture = simulate_move(temp_piece, move, temp_board, game, captured_pieces)
+                move_data = (new_board, last_move, was_capture)
+                
+                # Categorize moves for better ordering
+                if was_capture:
+                    # Captures are most important
+                    capture_moves.append(move_data)
+                elif board.get_stack_size(move[0], move[1]) > 0:
+                    # Stacking moves (joining friendly pieces)
+                    stack_moves.append(move_data)
+                else:
+                    # Normal moves
+                    normal_moves.append(move_data)
     
-    return moves
+    # Return moves in strategic order: captures first, then stacking, then normal
+    return capture_moves + stack_moves + normal_moves
 
 
 def get_best_move(board, color, depth=3, use_alpha_beta=True):
@@ -153,4 +174,3 @@ def get_best_move(board, color, depth=3, use_alpha_beta=True):
             value, new_board, move_info, was_capture = minimax(board, depth, False, None)
     
     return new_board, move_info, was_capture
-
