@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Checkers Game
 
 A feature-rich Checkers variant built with Pygame. Supports Human vs Human, Human vs AI, and AI vs AI modes, dynamic board/window sizing, and Ludo-style stacking rules (pairs/triples) with stack-strength captures.
@@ -129,3 +130,6 @@ All core configuration lives in `constants.py`:
 
 Enjoy playing Checkers! 🎮
 
+=======
+# AI_Project
+>>>>>>> f7a83e7c18f65b1217aed04c86779015983194d4
